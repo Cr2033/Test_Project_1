@@ -22,8 +22,12 @@ def backup(source: Path = SOURCE, backup_dir: Path = BACKUP_DIR) -> Path:
 
 def purge_old_backups(backup_dir: Path = BACKUP_DIR, keep_days: int = 7) -> None:
     cutoff = datetime.now().timestamp() - keep_days * 86400
-    for entry in backup_dir.glob("Documents_*"):
-        if entry.is_dir() and entry.stat().st_mtime < cutoff:
+    for entry in backup_dir.glob("Documents_????-??-??_??-??-??"):
+        try:
+            ts = datetime.strptime(entry.name, "Documents_%Y-%m-%d_%H-%M-%S").timestamp()
+        except ValueError:
+            continue
+        if entry.is_dir() and ts < cutoff:
             log.info(f"Removing old backup: {entry.name}")
             shutil.rmtree(entry)
 
