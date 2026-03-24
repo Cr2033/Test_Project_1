@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from project_1.main import backup, purge_old_backups
+from test_project_1.main import backup, purge_old_backups
 
 
 @pytest.fixture
