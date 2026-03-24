@@ -17,7 +17,7 @@ pip install -e ".[dev]"
 pytest
 
 # Run a single test
-pytest tests/test_main.py::test_main
+pytest tests/test_main.py::test_backup_creates_timestamped_folder
 
 # Run tests with coverage
 pytest --cov=project_1
@@ -28,14 +28,20 @@ ruff check src/ tests/
 # Auto-fix lint issues
 ruff check --fix src/ tests/
 
-# Run the main entry point
+# Run the backup manually
 python -m project_1.main
 ```
 
 ## Architecture
 
-- `src/project_1/` — main package; add modules here
-- `tests/` — pytest tests mirroring the package structure
+- `src/project_1/main.py` — two public functions: `backup()` and `purge_old_backups()`, called in sequence by `main()`
+- `tests/test_main.py` — pytest tests using `tmp_path` fixtures; never touch real `~/Documents` or `~/Backups`
 - `pyproject.toml` — single source of truth for dependencies, build config, ruff, and pytest settings
 
-All source code lives under `src/` (src layout), so the package is not importable without installing it (editable install via `pip install -e .`). Tests import from `project_1` directly after the editable install.
+All source code lives under `src/` (src layout), so the package is not importable without installing it (editable install via `pip install -e .`).
+
+## Backup behaviour
+
+- `backup()` copies `~/Documents` to `~/Backups/Documents_YYYY-MM-DD_HH-MM-SS`
+- `purge_old_backups()` deletes backup folders older than 7 days, using the timestamp in the folder name (not filesystem mtime, which is unreliable after `shutil.copytree`)
+- A cron job runs `python -m project_1.main` daily at 2:00 AM; logs go to `~/Backups/backup.log`
